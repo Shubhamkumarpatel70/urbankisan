@@ -1,14 +1,16 @@
-// Image upload endpoint
+
+const express = require("express");
+const router = express.Router();
+const Product = require("../models/Product");
+const { protect, admin } = require("../middleware/auth");
 const upload = require("../middleware/upload");
+
+// Image upload endpoint
 router.post("/upload", protect, admin, upload.single("image"), (req, res) => {
   if (!req.file) return res.status(400).json({ message: "No file uploaded" });
   const url = `/uploads/${req.file.filename}`;
   res.json({ url });
 });
-const express = require("express");
-const router = express.Router();
-const Product = require("../models/Product");
-const { protect, admin } = require("../middleware/auth");
 
 // Get all products (public - only active products)
 router.get("/", async (req, res) => {
