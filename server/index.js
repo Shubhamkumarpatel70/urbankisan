@@ -21,6 +21,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
+// Serve uploaded images
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 // Routes
 app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);

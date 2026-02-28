@@ -27,6 +27,26 @@ const AdminTeam = () => {
     order: 0,
     socialLinks: { linkedin: "", twitter: "", email: "" },
   });
+  const [uploading, setUploading] = useState(false);
+
+  // Handle image file upload
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formDataObj = new FormData();
+    formDataObj.append("image", file);
+    setUploading(true);
+    try {
+      const { data } = await axios.post("/api/team/upload", formDataObj, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setFormData((prev) => ({ ...prev, image: data.url }));
+    } catch (err) {
+      alert("Image upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -360,7 +380,7 @@ const AdminTeam = () => {
                     </div>
                   )}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 space-y-2">
                   <label className="block text-sm font-medium text-brown mb-1">
                     Profile Image URL
                   </label>
@@ -373,6 +393,20 @@ const AdminTeam = () => {
                     placeholder="https://example.com/image.jpg"
                     className="w-full px-3 py-2.5 bg-ivory border border-wheat rounded-xl text-sm focus:outline-none focus:border-olive"
                   />
+                  <div className="flex items-center gap-2 mt-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="block w-full text-sm text-brown file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-olive/10 file:text-olive hover:file:bg-olive/20"
+                      disabled={uploading}
+                    />
+                    {uploading && (
+                      <span className="text-xs text-brown/50">
+                        Uploading...
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 

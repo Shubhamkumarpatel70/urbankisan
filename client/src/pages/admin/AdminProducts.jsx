@@ -58,6 +58,45 @@ const categoryWeightType = {
 
 const AdminProducts = () => {
   const { addToast } = useToast();
+  const [uploading, setUploading] = useState(false);
+
+  // Handle main image upload
+  const handleMainImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formDataObj = new FormData();
+    formDataObj.append("image", file);
+    setUploading(true);
+    try {
+      const { data } = await axios.post("/api/products/upload", formDataObj, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setFormData((prev) => ({ ...prev, image: data.url }));
+    } catch (err) {
+      addToast("Image upload failed", "error");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Handle additional image upload
+  const handleAdditionalImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formDataObj = new FormData();
+    formDataObj.append("image", file);
+    setUploading(true);
+    try {
+      const { data } = await axios.post("/api/products/upload", formDataObj, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setFormData((prev) => ({ ...prev, images: [...prev.images, data.url] }));
+    } catch (err) {
+      addToast("Image upload failed", "error");
+    } finally {
+      setUploading(false);
+    }
+  };
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -473,9 +512,21 @@ const AdminProducts = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, image: e.target.value })
                   }
-                  className="input-field"
+                  className="input-field mb-2"
                   placeholder="https://..."
                 />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleMainImageUpload}
+                  className="block w-full text-sm text-brown file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-olive/10 file:text-olive hover:file:bg-olive/20"
+                  disabled={uploading}
+                />
+                {uploading && (
+                  <span className="text-xs text-brown/50 ml-2">
+                    Uploading...
+                  </span>
+                )}
               </div>
 
               {/* Multiple Images */}
@@ -501,6 +552,13 @@ const AdminProducts = () => {
                   >
                     Add
                   </button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAdditionalImageUpload}
+                    className="block text-sm text-brown file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-olive/10 file:text-olive hover:file:bg-olive/20"
+                    disabled={uploading}
+                  />
                 </div>
                 {formData.images.length > 0 && (
                   <div className="flex flex-wrap gap-2">

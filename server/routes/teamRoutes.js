@@ -1,7 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const Team = require("../models/Team");
+
 const { protect, admin } = require("../middleware/auth");
+const path = require("path");
+const upload = require("../middleware/upload");
+
+// Image upload endpoint
+router.post("/upload", protect, admin, upload.single("image"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: "No file uploaded" });
+  }
+  // Return the relative URL for the uploaded image
+  const url = `/uploads/${req.file.filename}`;
+  res.json({ url });
+});
 
 // Get all active team members (public)
 router.get("/", async (req, res) => {
