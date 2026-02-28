@@ -1,0 +1,20 @@
+{
+  "name": "urbankisan",
+  "version": "1.0.0",
+  "description": "UrbanKisan - Online Food Store",
+  "scripts": {
+    "install-all": "cd server && npm install && cd ../client && npm install",
+    "build": "cd client && npm run build",
+    "start": "cd server && node index.js",
+    "dev": "cd server && npm run dev"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Shubhamkumarpatel70/urbankisan.git"
+  },
+  "author": "Shubham Kumar Patel",
+  "license": "MIT"
+}
