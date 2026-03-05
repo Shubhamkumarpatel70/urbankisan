@@ -183,6 +183,7 @@ const Checkout = () => {
           quantity: item.quantity,
           price: item.price,
           image: item.image,
+          weight: item.selectedWeight || null,
         })),
         shippingAddress: address,
         paymentMethod,

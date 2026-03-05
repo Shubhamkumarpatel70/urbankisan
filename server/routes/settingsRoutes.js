@@ -2,6 +2,55 @@ const express = require("express");
 const router = express.Router();
 const Settings = require("../models/Settings");
 const { protect, admin } = require("../middleware/auth");
+const upload = require("../middleware/upload");
+
+// Get homepage banner and our story images (public)
+router.get("/images", async (req, res) => {
+  try {
+    let settings = await Settings.findOne({ key: "images" });
+    if (!settings) {
+      settings = await Settings.create({ key: "images" });
+    }
+    res.json({
+      homeBanner: settings.homeBanner || "",
+      ourStory: settings.ourStory || "",
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Admin: upload home banner image
+router.post(
+  "/images/homeBanner",
+  protect,
+  admin,
+  upload.single("image"),
+  async (req, res) => {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+    let settings = await Settings.findOne({ key: "images" });
+    if (!settings) settings = new Settings({ key: "images" });
+    settings.homeBanner = `/uploads/${req.file.filename}`;
+    await settings.save();
+    res.json({ url: settings.homeBanner });
+  },
+);
+
+// Admin: upload our story image
+router.post(
+  "/images/ourStory",
+  protect,
+  admin,
+  upload.single("image"),
+  async (req, res) => {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+    let settings = await Settings.findOne({ key: "images" });
+    if (!settings) settings = new Settings({ key: "images" });
+    settings.ourStory = `/uploads/${req.file.filename}`;
+    await settings.save();
+    res.json({ url: settings.ourStory });
+  },
+);
 
 // Get shipping settings (public)
 router.get("/shipping", async (req, res) => {

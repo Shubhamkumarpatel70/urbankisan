@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import {
   FiHeart,
@@ -11,7 +11,6 @@ import {
   FiPackage,
   FiHome,
   FiMapPin,
-  FiClock,
   FiThumbsUp,
   FiLinkedin,
   FiTwitter,
@@ -19,13 +18,11 @@ import {
 } from "react-icons/fi";
 
 const About = () => {
-  const [activeStep, setActiveStep] = useState(0);
-  const [isTimelineVisible, setIsTimelineVisible] = useState(false);
   const [team, setTeam] = useState([]);
   const [teamLoading, setTeamLoading] = useState(true);
-  const timelineRef = useRef(null);
+  const [ourStoryImage, setOurStoryImage] = useState("");
 
-  // Fetch team members
+  // Fetch team members and site images
   useEffect(() => {
     const fetchTeam = async () => {
       try {
@@ -37,32 +34,20 @@ const About = () => {
         setTeamLoading(false);
       }
     };
-    fetchTeam();
-  }, []);
 
-  // Auto-advance timeline animation
-  useEffect(() => {
-    if (!isTimelineVisible) return;
-    const interval = setInterval(() => {
-      setActiveStep((prev) => (prev >= 4 ? 0 : prev + 1));
-    }, 2500);
-    return () => clearInterval(interval);
-  }, [isTimelineVisible]);
-
-  // Intersection observer for timeline
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsTimelineVisible(true);
+    const fetchSiteImages = async () => {
+      try {
+        const { data } = await axios.get("/api/settings/images");
+        if (data.ourStory) {
+          setOurStoryImage(data.ourStory);
         }
-      },
-      { threshold: 0.3 },
-    );
-    if (timelineRef.current) {
-      observer.observe(timelineRef.current);
-    }
-    return () => observer.disconnect();
+      } catch (error) {
+        console.error("Error fetching site images:", error);
+      }
+    };
+
+    fetchTeam();
+    fetchSiteImages();
   }, []);
 
   const values = [
@@ -135,7 +120,10 @@ const About = () => {
             </div>
             <div className="relative">
               <img
-                src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600"
+                src={
+                  ourStoryImage ||
+                  "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600"
+                }
                 alt="Farmer in field"
                 className="rounded-2xl shadow-xl w-full h-64 sm:h-80 object-cover"
               />
@@ -175,201 +163,91 @@ const About = () => {
       </section>
 
       {/* Delivery Timeline */}
-      <section className="py-16 sm:py-24 bg-gradient-to-br from-brown/[0.02] via-olive/5 to-gold/10 overflow-hidden">
-        <div className="max-w-6xl mx-auto px-4" ref={timelineRef}>
+      <section className="py-16 sm:py-20 bg-ivory">
+        <div className="max-w-6xl mx-auto px-4">
           {/* Section Header */}
-          <div className="text-center mb-12 sm:mb-16">
+          <div className="text-center mb-12">
             <span className="inline-block px-4 py-1.5 bg-olive/10 text-olive text-xs font-bold uppercase tracking-wider rounded-full mb-4">
               Farm to Table
             </span>
-            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-brown mb-4">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-brown mb-3">
               How We Deliver to You
             </h2>
-            <p className="text-brown/60 max-w-xl mx-auto text-sm sm:text-base">
-              Experience our seamless 5-step journey that ensures freshness from
-              harvest to your home
+            <p className="text-brown/60 max-w-lg mx-auto text-sm sm:text-base">
+              Our simple 5-step process ensures freshness from harvest to your
+              doorstep
             </p>
           </div>
 
-          {/* Animated Timeline */}
-          <div className="relative">
-            {/* Animated Progress Line - Desktop */}
-            <div className="hidden lg:block absolute top-20 left-[10%] right-[10%] h-1.5 bg-wheat/50 rounded-full overflow-hidden">
+          {/* Timeline Steps */}
+          <div className="grid md:grid-cols-5 gap-6 md:gap-4 relative">
+            {/* Connecting Line - Desktop */}
+            <div className="hidden md:block absolute top-10 left-[10%] right-[10%] h-0.5 bg-wheat" />
+
+            {[
+              {
+                icon: FiSun,
+                title: "Farm Harvest",
+                description: "Hand-picked at peak freshness",
+                time: "Day 1",
+              },
+              {
+                icon: FiCheckCircle,
+                title: "Quality Check",
+                description: "3-tier inspection process",
+                time: "Day 1",
+              },
+              {
+                icon: FiPackage,
+                title: "Eco Packing",
+                description: "Sustainable packaging",
+                time: "Day 1-2",
+              },
+              {
+                icon: FiTruck,
+                title: "Express Dispatch",
+                description: "Cold chain logistics",
+                time: "Day 2",
+              },
+              {
+                icon: FiHome,
+                title: "Your Doorstep",
+                description: "Delivered fresh to you",
+                time: "Day 2-3",
+              },
+            ].map((item, idx) => (
               <div
-                className="h-full bg-gradient-to-r from-olive via-gold to-olive rounded-full transition-all duration-700 ease-out"
-                style={{ width: `${(activeStep + 1) * 20}%` }}
-              />
-            </div>
-
-            {/* Timeline Steps */}
-            <div className="grid lg:grid-cols-5 gap-6 lg:gap-2 relative">
-              {[
-                {
-                  icon: FiSun,
-                  title: "Farm Harvest",
-                  description: "Hand-picked organic produce at peak freshness",
-                  time: "Day 1",
-                  color: "from-green-400 to-emerald-500",
-                },
-                {
-                  icon: FiCheckCircle,
-                  title: "Quality Check",
-                  description: "3-tier inspection for purity & freshness",
-                  time: "Day 1",
-                  color: "from-blue-400 to-cyan-500",
-                },
-                {
-                  icon: FiPackage,
-                  title: "Eco Packing",
-                  description: "Sustainable packaging that preserves quality",
-                  time: "Day 1-2",
-                  color: "from-amber-400 to-orange-500",
-                },
-                {
-                  icon: FiTruck,
-                  title: "Express Dispatch",
-                  description: "Cold chain logistics for maximum freshness",
-                  time: "Day 2",
-                  color: "from-purple-400 to-violet-500",
-                },
-                {
-                  icon: FiHome,
-                  title: "Your Doorstep",
-                  description: "Delivered with care, ready to enjoy!",
-                  time: "Day 2-3",
-                  color: "from-rose-400 to-pink-500",
-                },
-              ].map((item, idx) => (
-                <div
-                  key={idx}
-                  className={`relative flex lg:flex-col items-start lg:items-center gap-4 lg:gap-0 group cursor-pointer transition-all duration-500 ${
-                    isTimelineVisible
-                      ? "translate-y-0 opacity-100"
-                      : "translate-y-8 opacity-0"
-                  }`}
-                  style={{ transitionDelay: `${idx * 150}ms` }}
-                  onClick={() => setActiveStep(idx)}
-                >
-                  {/* Step Indicator */}
-                  <div className="relative z-10 flex-shrink-0">
-                    {/* Pulse Ring */}
-                    <div
-                      className={`absolute inset-0 rounded-full transition-all duration-500 ${
-                        activeStep === idx
-                          ? "bg-olive/20 scale-150 animate-pulse"
-                          : "scale-100 opacity-0"
-                      }`}
-                    />
-
-                    {/* Main Circle */}
-                    <div
-                      className={`relative w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 rounded-full flex items-center justify-center transition-all duration-500 ${
-                        activeStep >= idx
-                          ? "bg-gradient-to-br " +
-                            item.color +
-                            " shadow-xl scale-110"
-                          : "bg-white shadow-md border-2 border-wheat group-hover:border-olive/30 group-hover:scale-105"
-                      }`}
-                    >
-                      <item.icon
-                        className={`w-7 h-7 sm:w-8 sm:h-8 transition-all duration-300 ${
-                          activeStep >= idx
-                            ? "text-white"
-                            : "text-brown/40 group-hover:text-olive"
-                        }`}
-                      />
-                    </div>
-
-                    {/* Step Number Badge */}
-                    <span
-                      className={`absolute -top-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-lg transition-all duration-300 ${
-                        activeStep >= idx
-                          ? "bg-gold text-brown scale-110"
-                          : "bg-white text-brown/50 border border-wheat"
-                      }`}
-                    >
-                      {idx + 1}
-                    </span>
+                key={idx}
+                className="flex md:flex-col items-start md:items-center gap-4 md:gap-0"
+              >
+                {/* Step Circle */}
+                <div className="relative z-10 flex-shrink-0">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white border-2 border-olive flex items-center justify-center shadow-sm">
+                    <item.icon className="w-7 h-7 md:w-8 md:h-8 text-olive" />
                   </div>
-
-                  {/* Content Card */}
-                  <div
-                    className={`lg:mt-6 lg:text-center flex-1 lg:px-2 transition-all duration-500 ${
-                      activeStep === idx ? "lg:-translate-y-2" : ""
-                    }`}
-                  >
-                    <div
-                      className={`lg:bg-white lg:rounded-xl lg:p-4 lg:shadow-sm lg:border transition-all duration-300 ${
-                        activeStep === idx
-                          ? "lg:border-olive/30 lg:shadow-lg"
-                          : "lg:border-transparent lg:group-hover:border-wheat lg:group-hover:shadow-md"
-                      }`}
-                    >
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold mb-2 ${
-                          activeStep >= idx
-                            ? "bg-olive/10 text-olive"
-                            : "bg-brown/5 text-brown/40"
-                        }`}
-                      >
-                        <FiClock className="inline-block w-3 h-3 mr-1" />
-                        {item.time}
-                      </span>
-                      <h3
-                        className={`font-display font-bold text-base sm:text-lg mb-1 transition-colors ${
-                          activeStep >= idx ? "text-brown" : "text-brown/60"
-                        }`}
-                      >
-                        {item.title}
-                      </h3>
-                      <p
-                        className={`text-xs sm:text-sm leading-relaxed ${
-                          activeStep >= idx ? "text-brown/70" : "text-brown/40"
-                        }`}
-                      >
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Connecting Line - Mobile */}
-                  {idx < 4 && (
-                    <div
-                      className={`lg:hidden absolute left-[31px] top-[64px] w-0.5 h-[calc(100%+24px)] transition-all duration-500 ${
-                        activeStep > idx
-                          ? "bg-gradient-to-b from-olive to-gold"
-                          : "bg-wheat/50"
-                      }`}
-                    />
-                  )}
+                  <span className="absolute -top-1 -right-1 w-6 h-6 bg-gold text-brown text-xs font-bold rounded-full flex items-center justify-center">
+                    {idx + 1}
+                  </span>
                 </div>
-              ))}
-            </div>
 
-            {/* Step Dots Navigation */}
-            <div className="flex justify-center gap-2 mt-10 lg:mt-12">
-              {[0, 1, 2, 3, 4].map((step) => (
-                <button
-                  key={step}
-                  onClick={() => setActiveStep(step)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    activeStep === step
-                      ? "w-8 bg-olive"
-                      : "w-2 bg-wheat hover:bg-gold"
-                  }`}
-                />
-              ))}
-            </div>
+                {/* Content */}
+                <div className="md:mt-4 md:text-center">
+                  <span className="text-[10px] font-semibold text-olive/70 uppercase tracking-wide">
+                    {item.time}
+                  </span>
+                  <h3 className="font-display font-bold text-brown text-base mt-1">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs text-brown/60 mt-0.5">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Delivery Stats */}
-          <div
-            className={`mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 transition-all duration-700 delay-300 ${
-              isTimelineVisible
-                ? "translate-y-0 opacity-100"
-                : "translate-y-8 opacity-0"
-            }`}
-          >
+          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { value: "24-48h", label: "Metro Delivery", icon: "🚀" },
               { value: "99.2%", label: "On-Time Rate", icon: "⏱️" },
@@ -378,12 +256,10 @@ const About = () => {
             ].map((stat, idx) => (
               <div
                 key={idx}
-                className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 text-center border border-wheat/50 hover:border-olive/30 hover:shadow-lg transition-all duration-300 group"
+                className="bg-white rounded-xl p-4 text-center border border-wheat"
               >
-                <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">
-                  {stat.icon}
-                </span>
-                <p className="text-xl sm:text-2xl font-bold text-olive mb-0.5">
+                <span className="text-xl mb-1 block">{stat.icon}</span>
+                <p className="text-lg sm:text-xl font-bold text-olive">
                   {stat.value}
                 </p>
                 <p className="text-xs text-brown/60">{stat.label}</p>
@@ -391,61 +267,36 @@ const About = () => {
             ))}
           </div>
 
-          {/* Delivery Promise Card */}
-          <div
-            className={`mt-14 sm:mt-20 relative transition-all duration-700 delay-500 ${
-              isTimelineVisible
-                ? "translate-y-0 opacity-100"
-                : "translate-y-12 opacity-0"
-            }`}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-olive/20 via-gold/20 to-olive/20 rounded-3xl blur-xl" />
-            <div className="relative bg-white/90 backdrop-blur-sm rounded-3xl p-6 sm:p-10 shadow-2xl border border-gold/20 overflow-hidden">
-              {/* Decorative Elements */}
-              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-gold/10 to-transparent rounded-full blur-2xl" />
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-olive/10 to-transparent rounded-full blur-2xl" />
-
-              <div className="relative flex flex-col md:flex-row items-center gap-6 md:gap-10">
-                <div className="flex-shrink-0">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 bg-gradient-to-br from-olive to-olive/80 rounded-2xl flex items-center justify-center shadow-xl rotate-3 hover:rotate-0 transition-transform duration-300">
-                    <FiThumbsUp className="text-white w-12 h-12 sm:w-14 sm:h-14" />
-                  </div>
+          {/* Delivery Promise */}
+          <div className="mt-12 bg-white rounded-2xl p-6 sm:p-8 border border-wheat">
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <div className="flex-shrink-0">
+                <div className="w-20 h-20 bg-olive rounded-xl flex items-center justify-center">
+                  <FiThumbsUp className="text-white w-10 h-10" />
                 </div>
-                <div className="text-center md:text-left flex-1">
-                  <h3 className="font-display text-2xl sm:text-3xl font-bold text-brown mb-3">
-                    Our Freshness Guarantee
-                  </h3>
-                  <p className="text-brown/70 text-sm sm:text-base mb-4 max-w-xl">
-                    We promise delivery within{" "}
-                    <span className="text-olive font-bold text-lg">
-                      24-48 hours
-                    </span>{" "}
-                    in metro cities and{" "}
-                    <span className="text-olive font-bold text-lg">
-                      3-5 days
-                    </span>{" "}
-                    for other locations. If you're not 100% satisfied, we'll
-                    replace your order or give you a full refund!
-                  </p>
-                  <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="w-8 h-8 bg-olive/10 rounded-full flex items-center justify-center">
-                        <FiMapPin className="text-olive w-4 h-4" />
-                      </span>
-                      <span className="text-brown/80">Real-time Tracking</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="w-8 h-8 bg-gold/20 rounded-full flex items-center justify-center">
-                        <FiShield className="text-gold w-4 h-4" />
-                      </span>
-                      <span className="text-brown/80">100% Safe Packaging</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="w-8 h-8 bg-olive/10 rounded-full flex items-center justify-center">
-                        <FiTruck className="text-olive w-4 h-4" />
-                      </span>
-                      <span className="text-brown/80">Free Delivery ₹499+</span>
-                    </div>
+              </div>
+              <div className="text-center sm:text-left flex-1">
+                <h3 className="font-display text-xl sm:text-2xl font-bold text-brown mb-2">
+                  Our Freshness Guarantee
+                </h3>
+                <p className="text-brown/70 text-sm mb-4">
+                  Delivery within{" "}
+                  <span className="text-olive font-bold">24-48 hours</span> in
+                  metro cities. Not satisfied? We'll replace it or give you a
+                  full refund!
+                </p>
+                <div className="flex flex-wrap justify-center sm:justify-start gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <FiMapPin className="text-olive" />
+                    <span className="text-brown/70">Real-time Tracking</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FiShield className="text-gold" />
+                    <span className="text-brown/70">Safe Packaging</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FiTruck className="text-olive" />
+                    <span className="text-brown/70">Free Delivery ₹499+</span>
                   </div>
                 </div>
               </div>

@@ -385,12 +385,12 @@ const AdminTeam = () => {
                     Profile Image URL
                   </label>
                   <input
-                    type="url"
+                    type="text"
                     value={formData.image}
                     onChange={(e) =>
                       setFormData({ ...formData, image: e.target.value })
                     }
-                    placeholder="https://example.com/image.jpg"
+                    placeholder="https://example.com/image.jpg or /uploads/filename.png"
                     className="w-full px-3 py-2.5 bg-ivory border border-wheat rounded-xl text-sm focus:outline-none focus:border-olive"
                   />
                   <div className="flex items-center gap-2 mt-1">

@@ -13,7 +13,7 @@ const categories = [
   { id: "oils", label: "Oils", icon: "🫒" },
 ];
 
-const testimonials = [
+const defaultTestimonials = [
   {
     name: "Priya Sharma",
     text: "The quality of spices is unmatched! My kitchen has never smelled this good. The turmeric and garam masala are simply outstanding.",
@@ -37,7 +37,9 @@ const testimonials = [
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [categoryCounts, setCategoryCounts] = useState({});
+  const [testimonials, setTestimonials] = useState(defaultTestimonials);
   const [loading, setLoading] = useState(true);
+  const [homeBanner, setHomeBanner] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,6 +57,27 @@ const Home = () => {
           counts[p.category] = (counts[p.category] || 0) + 1;
         });
         setCategoryCounts(counts);
+
+        // Fetch testimonials
+        try {
+          const { data: testimonialsData } =
+            await axios.get("/api/testimonials");
+          if (testimonialsData && testimonialsData.length > 0) {
+            setTestimonials(testimonialsData);
+          }
+        } catch (err) {
+          console.log("Using default testimonials");
+        }
+
+        // Fetch home banner from settings
+        try {
+          const { data: imagesData } = await axios.get("/api/settings/images");
+          if (imagesData.homeBanner) {
+            setHomeBanner(imagesData.homeBanner);
+          }
+        } catch (err) {
+          console.log("Using default banner");
+        }
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {
@@ -93,7 +116,10 @@ const Home = () => {
           </div>
           <div className="flex-1 max-w-md">
             <img
-              src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=600"
+              src={
+                homeBanner ||
+                "https://images.unsplash.com/photo-1542838132-92c53300491e?w=600"
+              }
               alt="Fresh produce"
               className="rounded-2xl shadow-xl w-full object-cover h-64 sm:h-80"
             />
@@ -101,34 +127,34 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Features Bar */}
-      <section className="bg-white border-y border-wheat">
-        <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-3 gap-4">
-          <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
-            <FiTruck className="text-olive" size={24} />
+      {/* Features Bar - Cards */}
+      <section className="max-w-7xl mx-auto px-4 -mt-6 relative z-10">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-white rounded-xl p-5 shadow-md border border-wheat/50 flex items-center gap-4 hover:shadow-lg transition-shadow">
+            <div className="w-12 h-12 bg-olive/10 rounded-xl flex items-center justify-center flex-shrink-0">
+              <FiTruck className="text-olive" size={24} />
+            </div>
             <div>
-              <p className="font-medium text-brown text-sm">Free Delivery</p>
-              <p className="text-xs text-brown/50 hidden sm:block">
-                Orders above ₹499
-              </p>
+              <p className="font-semibold text-brown">Free Delivery</p>
+              <p className="text-sm text-brown/60">Orders above ₹499</p>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
-            <FiShield className="text-olive" size={24} />
+          <div className="bg-white rounded-xl p-5 shadow-md border border-wheat/50 flex items-center gap-4 hover:shadow-lg transition-shadow">
+            <div className="w-12 h-12 bg-olive/10 rounded-xl flex items-center justify-center flex-shrink-0">
+              <FiShield className="text-olive" size={24} />
+            </div>
             <div>
-              <p className="font-medium text-brown text-sm">100% Genuine</p>
-              <p className="text-xs text-brown/50 hidden sm:block">
-                Quality assured products
-              </p>
+              <p className="font-semibold text-brown">100% Genuine</p>
+              <p className="text-sm text-brown/60">Quality assured products</p>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
-            <FiSun className="text-olive" size={24} />
+          <div className="bg-white rounded-xl p-5 shadow-md border border-wheat/50 flex items-center gap-4 hover:shadow-lg transition-shadow">
+            <div className="w-12 h-12 bg-olive/10 rounded-xl flex items-center justify-center flex-shrink-0">
+              <FiSun className="text-olive" size={24} />
+            </div>
             <div>
-              <p className="font-medium text-brown text-sm">Farm Fresh</p>
-              <p className="text-xs text-brown/50 hidden sm:block">
-                Directly from farmers
-              </p>
+              <p className="font-semibold text-brown">Farm Fresh</p>
+              <p className="text-sm text-brown/60">Directly from farmers</p>
             </div>
           </div>
         </div>
@@ -140,25 +166,28 @@ const Home = () => {
           Shop by Category
         </h2>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 sm:gap-4">
-          {categories.filter((cat) => categoryCounts[cat.id] > 0).map((cat) => (
-            <Link
-              key={cat.id}
-              to={`/products?category=${cat.id}`}
-              className="bg-white rounded-xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 text-center group"
-            >
-              <span className="text-2xl sm:text-3xl block mb-2">
-                {cat.icon}
-              </span>
-              <p className="text-sm font-medium text-brown group-hover:text-olive transition-colors">
-                {cat.label}
-              </p>
-              {categoryCounts[cat.id] > 0 && (
-                <p className="text-xs text-brown/50 mt-1">
-                  {categoryCounts[cat.id]} product{categoryCounts[cat.id] !== 1 ? "s" : ""}
+          {categories
+            .filter((cat) => categoryCounts[cat.id] > 0)
+            .map((cat) => (
+              <Link
+                key={cat.id}
+                to={`/products?category=${cat.id}`}
+                className="bg-white rounded-xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 text-center group"
+              >
+                <span className="text-2xl sm:text-3xl block mb-2">
+                  {cat.icon}
+                </span>
+                <p className="text-sm font-medium text-brown group-hover:text-olive transition-colors">
+                  {cat.label}
                 </p>
-              )}
-            </Link>
-          ))}
+                {categoryCounts[cat.id] > 0 && (
+                  <p className="text-xs text-brown/50 mt-1">
+                    {categoryCounts[cat.id]} product
+                    {categoryCounts[cat.id] !== 1 ? "s" : ""}
+                  </p>
+                )}
+              </Link>
+            ))}
         </div>
       </section>
 
@@ -200,22 +229,32 @@ const Home = () => {
         </h2>
         <div className="grid md:grid-cols-3 gap-6">
           {testimonials.map((t, idx) => (
-            <div key={idx} className="bg-white rounded-xl p-5 sm:p-6 shadow-sm">
+            <div
+              key={t._id || idx}
+              className="bg-white rounded-xl p-5 sm:p-6 shadow-md border border-wheat/50 hover:shadow-lg transition-shadow"
+            >
               <div className="flex gap-1 mb-3">
-                {[...Array(t.rating)].map((_, i) => (
+                {[...Array(5)].map((_, i) => (
                   <FiStar
                     key={i}
-                    size={14}
-                    className="text-gold fill-current"
+                    size={16}
+                    className={`${i < t.rating ? "text-gold fill-current" : "text-brown/20"}`}
                   />
                 ))}
               </div>
               <p className="text-brown/70 text-sm leading-relaxed mb-4">
                 "{t.text}"
               </p>
-              <div>
-                <p className="font-medium text-brown text-sm">{t.name}</p>
-                <p className="text-xs text-brown/50">{t.location}</p>
+              <div className="flex items-center gap-3 pt-3 border-t border-wheat">
+                <div className="w-10 h-10 rounded-full bg-olive/10 flex items-center justify-center">
+                  <span className="text-olive font-bold text-sm">
+                    {t.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <p className="font-medium text-brown text-sm">{t.name}</p>
+                  <p className="text-xs text-brown/50">{t.location}</p>
+                </div>
               </div>
             </div>
           ))}

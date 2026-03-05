@@ -9,6 +9,10 @@ import {
   FiPackage,
   FiUser,
   FiX,
+  FiTrendingUp,
+  FiActivity,
+  FiAward,
+  FiMessageSquare,
 } from "react-icons/fi";
 
 const AdminVotes = () => {
@@ -16,6 +20,7 @@ const AdminVotes = () => {
   const [stats, setStats] = useState({ total: 0, upvotes: 0, downvotes: 0 });
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
+  const [topReviews, setTopReviews] = useState([]);
 
   // Filters
   const [selectedProduct, setSelectedProduct] = useState("");
@@ -49,6 +54,33 @@ const AdminVotes = () => {
       );
       setVotes(data.votes);
       setStats(data.stats);
+
+      // Calculate top reviewed products
+      const reviewVotesMap = {};
+      data.votes.forEach((vote) => {
+        const reviewId = vote.reviewId;
+        if (!reviewVotesMap[reviewId]) {
+          reviewVotesMap[reviewId] = {
+            reviewId,
+            product: vote.product,
+            reviewer: vote.reviewer,
+            comment: vote.reviewComment,
+            rating: vote.reviewRating,
+            upvotes: 0,
+            downvotes: 0,
+          };
+        }
+        if (vote.voteType === "upvote") {
+          reviewVotesMap[reviewId].upvotes++;
+        } else {
+          reviewVotesMap[reviewId].downvotes++;
+        }
+      });
+
+      const sortedReviews = Object.values(reviewVotesMap)
+        .sort((a, b) => b.upvotes - a.upvotes)
+        .slice(0, 3);
+      setTopReviews(sortedReviews);
     } catch (error) {
       console.error("Error fetching votes:", error);
     } finally {
@@ -69,12 +101,17 @@ const AdminVotes = () => {
     if (!searchTerm) return true;
     const search = searchTerm.toLowerCase();
     return (
-      vote.user?.name?.toLowerCase().includes(search) ||
-      vote.user?.email?.toLowerCase().includes(search) ||
+      vote.voter?.name?.toLowerCase().includes(search) ||
+      vote.voter?.email?.toLowerCase().includes(search) ||
+      vote.reviewer?.name?.toLowerCase().includes(search) ||
       vote.product?.name?.toLowerCase().includes(search) ||
-      vote.review?.comment?.toLowerCase().includes(search)
+      vote.reviewComment?.toLowerCase().includes(search)
     );
   });
+
+  // Calculate engagement rate
+  const engagementRate =
+    stats.total > 0 ? ((stats.upvotes / stats.total) * 100).toFixed(1) : 0;
 
   return (
     <div className="p-4 sm:p-6">
@@ -82,10 +119,10 @@ const AdminVotes = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="font-display text-2xl font-bold text-brown">
-            Review Votes
+            Review Engagement
           </h1>
           <p className="text-sm text-brown/60 mt-1">
-            Track customer engagement on reviews
+            Track how customers interact with product reviews
           </p>
         </div>
         <button
@@ -107,27 +144,29 @@ const AdminVotes = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-xl p-4 border border-brown/10 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-brown/10 flex items-center justify-center">
-              <FiThumbsUp className="text-brown" size={18} />
+            <div className="w-10 h-10 rounded-full bg-olive/10 flex items-center justify-center">
+              <FiActivity className="text-olive" size={18} />
             </div>
             <div>
-              <p className="text-sm text-brown/60">Total Votes</p>
+              <p className="text-xs text-brown/60">Total Votes</p>
               <p className="text-xl font-bold text-brown">{stats.total}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-4 border border-green/20 shadow-sm">
+        <div className="bg-white rounded-xl p-4 border border-green-200 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-green/10 flex items-center justify-center">
-              <FiThumbsUp className="text-green" size={18} />
+            <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
+              <FiThumbsUp className="text-green-600" size={18} />
             </div>
             <div>
-              <p className="text-sm text-brown/60">Upvotes</p>
-              <p className="text-xl font-bold text-green">{stats.upvotes}</p>
+              <p className="text-xs text-brown/60">Helpful</p>
+              <p className="text-xl font-bold text-green-600">
+                {stats.upvotes}
+              </p>
             </div>
           </div>
         </div>
@@ -138,14 +177,84 @@ const AdminVotes = () => {
               <FiThumbsDown className="text-red-500" size={18} />
             </div>
             <div>
-              <p className="text-sm text-brown/60">Downvotes</p>
+              <p className="text-xs text-brown/60">Not Helpful</p>
               <p className="text-xl font-bold text-red-500">
                 {stats.downvotes}
               </p>
             </div>
           </div>
         </div>
+
+        <div className="bg-white rounded-xl p-4 border border-gold/30 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center">
+              <FiTrendingUp className="text-gold" size={18} />
+            </div>
+            <div>
+              <p className="text-xs text-brown/60">Positive Rate</p>
+              <p className="text-xl font-bold text-gold">{engagementRate}%</p>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Top Helpful Reviews */}
+      {topReviews.length > 0 && (
+        <div className="bg-gradient-to-r from-gold/5 to-olive/5 rounded-xl p-4 mb-6 border border-gold/20">
+          <div className="flex items-center gap-2 mb-4">
+            <FiAward className="text-gold" size={20} />
+            <h3 className="font-semibold text-brown">Most Helpful Reviews</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {topReviews.map((review, idx) => (
+              <div
+                key={review.reviewId}
+                className="bg-white rounded-lg p-3 border border-brown/10"
+              >
+                <div className="flex items-start gap-2 mb-2">
+                  <span className="text-lg font-bold text-gold">
+                    #{idx + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-brown truncate">
+                      {review.product?.name || "Product"}
+                    </p>
+                    <p className="text-xs text-brown/50">
+                      by {review.reviewer?.name || "Anonymous"}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-brown/70 line-clamp-2 mb-2">
+                  "{review.comment || "No comment"}"
+                </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <FiStar
+                        key={star}
+                        size={10}
+                        className={
+                          star <= (review.rating || 0)
+                            ? "text-gold fill-current"
+                            : "text-brown/20"
+                        }
+                      />
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="flex items-center gap-1 text-green-600">
+                      <FiThumbsUp size={10} /> {review.upvotes}
+                    </span>
+                    <span className="flex items-center gap-1 text-red-400">
+                      <FiThumbsDown size={10} /> {review.downvotes}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filters Panel */}
       {showFilters && (
@@ -229,12 +338,15 @@ const AdminVotes = () => {
           </div>
         ) : filteredVotes.length === 0 ? (
           <div className="p-8 text-center">
-            <FiThumbsUp size={40} className="mx-auto text-brown/20 mb-3" />
-            <p className="text-brown/60">No votes found</p>
+            <FiActivity size={40} className="mx-auto text-brown/20 mb-3" />
+            <p className="text-brown/60 font-medium">No vote activity yet</p>
+            <p className="text-sm text-brown/40 mt-1">
+              Votes will appear here when customers interact with reviews
+            </p>
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="mt-2 text-sm text-gold hover:underline"
+                className="mt-3 text-sm text-gold hover:underline"
               >
                 Clear filters
               </button>
@@ -267,7 +379,7 @@ const AdminVotes = () => {
                 <tbody className="divide-y divide-brown/10">
                   {filteredVotes.map((vote, index) => (
                     <tr
-                      key={`${vote.review?._id}-${vote.user?._id}-${vote.type}-${index}`}
+                      key={`${vote.reviewId}-${vote.voter?._id}-${vote.voteType}-${index}`}
                       className="hover:bg-wheat/20 transition-colors"
                     >
                       <td className="px-4 py-3">
@@ -277,19 +389,19 @@ const AdminVotes = () => {
                           </div>
                           <div>
                             <p className="text-sm font-medium text-brown">
-                              {vote.user?.name || "Unknown"}
+                              {vote.voter?.name || "Anonymous"}
                             </p>
                             <p className="text-xs text-brown/50">
-                              {vote.user?.email || "-"}
+                              {vote.voter?.email || ""}
                             </p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          {vote.product?.images?.[0] ? (
+                          {vote.product?.image ? (
                             <img
-                              src={vote.product.images[0]}
+                              src={vote.product.image}
                               alt={vote.product.name}
                               className="w-10 h-10 rounded-lg object-cover"
                             />
@@ -304,43 +416,51 @@ const AdminVotes = () => {
                         </div>
                       </td>
                       <td className="px-4 py-3 max-w-xs">
-                        <div className="flex items-center gap-1 mb-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <FiStar
-                              key={star}
-                              size={10}
-                              className={
-                                star <= (vote.review?.rating || 0)
-                                  ? "text-gold fill-current"
-                                  : "text-brown/20"
-                              }
-                            />
-                          ))}
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <FiStar
+                                key={star}
+                                size={10}
+                                className={
+                                  star <= (vote.reviewRating || 0)
+                                    ? "text-gold fill-current"
+                                    : "text-brown/20"
+                                }
+                              />
+                            ))}
+                          </div>
+                          <span className="text-xs text-brown/50">
+                            by {vote.reviewer?.name || "Anonymous"}
+                          </span>
                         </div>
                         <p className="text-xs text-brown/70 line-clamp-2">
-                          {vote.review?.comment || "-"}
+                          {vote.reviewComment || "No comment"}
                         </p>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        {vote.type === "upvote" ? (
-                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green/10 text-green text-xs font-medium">
+                        {vote.voteType === "upvote" ? (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-50 text-green-600 text-xs font-medium">
                             <FiThumbsUp size={12} />
-                            Upvote
+                            Helpful
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-50 text-red-500 text-xs font-medium">
                             <FiThumbsDown size={12} />
-                            Downvote
+                            Not Helpful
                           </span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-sm text-brown/60">
-                        {vote.votedAt
-                          ? new Date(vote.votedAt).toLocaleDateString("en-IN", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            })
+                        {vote.createdAt
+                          ? new Date(vote.createdAt).toLocaleDateString(
+                              "en-IN",
+                              {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )
                           : "-"}
                       </td>
                     </tr>
@@ -353,7 +473,7 @@ const AdminVotes = () => {
             <div className="md:hidden divide-y divide-brown/10">
               {filteredVotes.map((vote, index) => (
                 <div
-                  key={`${vote.review?._id}-${vote.user?._id}-${vote.type}-${index}`}
+                  key={`${vote.reviewId}-${vote.voter?._id}-${vote.voteType}-${index}`}
                   className="p-4"
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
@@ -363,36 +483,36 @@ const AdminVotes = () => {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-brown">
-                          {vote.user?.name || "Unknown"}
+                          {vote.voter?.name || "Anonymous"}
                         </p>
                         <p className="text-xs text-brown/50">
-                          {vote.votedAt
-                            ? new Date(vote.votedAt).toLocaleDateString(
+                          {vote.createdAt
+                            ? new Date(vote.createdAt).toLocaleDateString(
                                 "en-IN",
                                 {
                                   day: "numeric",
                                   month: "short",
                                 },
                               )
-                            : "-"}
+                            : ""}
                         </p>
                       </div>
                     </div>
-                    {vote.type === "upvote" ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green/10 text-green text-xs font-medium">
-                        <FiThumbsUp size={12} />
+                    {vote.voteType === "upvote" ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-50 text-green-600 text-xs font-medium">
+                        <FiThumbsUp size={12} /> Helpful
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-50 text-red-500 text-xs font-medium">
-                        <FiThumbsDown size={12} />
+                        <FiThumbsDown size={12} /> Not Helpful
                       </span>
                     )}
                   </div>
 
                   <div className="flex items-center gap-2 mb-2">
-                    {vote.product?.images?.[0] ? (
+                    {vote.product?.image ? (
                       <img
-                        src={vote.product.images[0]}
+                        src={vote.product.image}
                         alt={vote.product.name}
                         className="w-12 h-12 rounded-lg object-cover"
                       />
@@ -405,24 +525,30 @@ const AdminVotes = () => {
                       <p className="text-sm font-medium text-brown truncate">
                         {vote.product?.name || "Unknown Product"}
                       </p>
-                      <div className="flex items-center gap-0.5">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <FiStar
-                            key={star}
-                            size={10}
-                            className={
-                              star <= (vote.review?.rating || 0)
-                                ? "text-gold fill-current"
-                                : "text-brown/20"
-                            }
-                          />
-                        ))}
+                      <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <FiStar
+                              key={star}
+                              size={10}
+                              className={
+                                star <= (vote.reviewRating || 0)
+                                  ? "text-gold fill-current"
+                                  : "text-brown/20"
+                              }
+                            />
+                          ))}
+                        </div>
+                        <span className="text-xs text-brown/40">
+                          by {vote.reviewer?.name || "Anonymous"}
+                        </span>
                       </div>
                     </div>
                   </div>
 
                   <p className="text-xs text-brown/60 line-clamp-2 bg-brown/5 rounded-lg p-2">
-                    "{vote.review?.comment || "No comment"}"
+                    <FiMessageSquare size={10} className="inline mr-1" />"
+                    {vote.reviewComment || "No comment"}"
                   </p>
                 </div>
               ))}
@@ -433,10 +559,18 @@ const AdminVotes = () => {
 
       {/* Results Summary */}
       {!loading && filteredVotes.length > 0 && (
-        <p className="text-sm text-brown/50 mt-4 text-center">
-          Showing {filteredVotes.length} vote
-          {filteredVotes.length !== 1 ? "s" : ""}
-        </p>
+        <div className="flex items-center justify-center gap-4 mt-4 text-sm text-brown/50">
+          <span>
+            Showing {filteredVotes.length} interaction
+            {filteredVotes.length !== 1 ? "s" : ""}
+          </span>
+          {stats.upvotes > 0 && stats.downvotes > 0 && (
+            <span className="hidden sm:inline">
+              • {((stats.upvotes / stats.total) * 100).toFixed(0)}% found
+              reviews helpful
+            </span>
+          )}
+        </div>
       )}
     </div>
   );

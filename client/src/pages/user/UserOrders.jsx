@@ -330,7 +330,11 @@ const UserOrders = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-brown/70 truncate">
-                    {order.items.map((i) => i.name).join(", ")}
+                    {order.items
+                      .map(
+                        (i) => `${i.name}${i.weight ? ` (${i.weight})` : ""}`,
+                      )
+                      .join(", ")}
                   </p>
                   <p className="text-xs text-brown/50">
                     {order.items.length} items
@@ -339,6 +343,36 @@ const UserOrders = () => {
                 <span className="text-lg font-bold text-brown">
                   ₹{order.totalPrice}
                 </span>
+              </div>
+
+              {/* Price Breakdown */}
+              <div className="bg-ivory/50 rounded-lg p-3 mb-4 space-y-1.5 text-sm">
+                <div className="flex justify-between text-brown/60">
+                  <span>Items Total</span>
+                  <span>₹{order.itemsPrice}</span>
+                </div>
+                {order.discountAmount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>
+                      Discount {order.discountCode && `(${order.discountCode})`}
+                    </span>
+                    <span>-₹{order.discountAmount}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-brown/60">
+                  <span>Shipping</span>
+                  <span
+                    className={order.shippingPrice === 0 ? "text-olive" : ""}
+                  >
+                    {order.shippingPrice === 0
+                      ? "Free"
+                      : `₹${order.shippingPrice}`}
+                  </span>
+                </div>
+                <div className="flex justify-between font-bold text-brown border-t border-wheat pt-1.5">
+                  <span>Total</span>
+                  <span className="text-olive">₹{order.totalPrice}</span>
+                </div>
               </div>
 
               {/* Tracking Info */}

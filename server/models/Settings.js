@@ -52,6 +52,10 @@ const settingsSchema = new mongoose.Schema(
         description: { type: String, default: "Visa, Mastercard, RuPay" },
       },
     },
+
+    // Home banner and Our Story images
+    homeBanner: { type: String, default: "" },
+    ourStory: { type: String, default: "" },
   },
   {
     timestamps: true,

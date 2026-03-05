@@ -70,18 +70,30 @@ const Products = () => {
         </div>
 
         {/* Search Bar */}
-        <div className="relative w-full sm:w-72">
-          <FiSearch
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-brown/40"
-            size={16}
-          />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search products..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-wheat bg-white text-sm text-brown placeholder-brown/40 focus:outline-none focus:border-olive"
-          />
+        <div className="relative w-full sm:w-80 flex gap-2">
+          <div className="relative flex-1">
+            <FiSearch
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-brown/40"
+              size={16}
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) =>
+                e.key === "Enter" && setSearchQuery(e.target.value)
+              }
+              placeholder="Search products..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-wheat bg-white text-sm text-brown placeholder-brown/40 focus:outline-none focus:border-olive"
+            />
+          </div>
+          <button
+            onClick={() => setSearchQuery(searchQuery)}
+            className="px-4 py-2.5 bg-olive text-ivory text-sm font-medium rounded-xl hover:bg-olive/90 transition-colors flex items-center gap-2"
+          >
+            <FiSearch size={16} />
+            <span className="hidden sm:inline">Search</span>
+          </button>
         </div>
       </div>
 

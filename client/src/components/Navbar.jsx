@@ -197,7 +197,10 @@ const Navbar = () => {
               <Link
                 to="/products"
                 className={`text-brown hover:text-olive transition-colors font-medium ${
-                  location.pathname === "/products" || location.pathname.startsWith("/product") ? "text-olive" : ""
+                  location.pathname === "/products" ||
+                  location.pathname.startsWith("/product")
+                    ? "text-olive"
+                    : ""
                 }`}
               >
                 Products
@@ -287,7 +290,7 @@ const Navbar = () => {
                                   <p className="text-sm font-medium text-brown leading-tight">
                                     {n.title}
                                   </p>
-                                  <p className="text-xs text-brown/50 mt-0.5 line-clamp-1">
+                                  <p className="text-xs text-brown/50 mt-0.5">
                                     {n.message}
                                   </p>
                                   <p className="text-[10px] text-brown/30 mt-1">
@@ -476,7 +479,7 @@ const Navbar = () => {
                                   <p className="text-sm font-medium text-brown leading-tight">
                                     {n.title}
                                   </p>
-                                  <p className="text-xs text-brown/50 mt-0.5 line-clamp-1">
+                                  <p className="text-xs text-brown/50 mt-0.5">
                                     {n.message}
                                   </p>
                                   <p className="text-[10px] text-brown/30 mt-1">

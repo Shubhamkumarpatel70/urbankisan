@@ -17,6 +17,7 @@ const orderItemSchema = new mongoose.Schema({
     required: true,
   },
   image: String,
+  weight: String,
 });
 
 // Auto-incrementing counter for order IDs

@@ -597,6 +597,11 @@ const AdminOrders = () => {
                         </p>
                         <p className="text-xs text-brown/60">
                           ₹{item.price} × {item.quantity}
+                          {item.weight && (
+                            <span className="ml-2 text-olive font-semibold">
+                              {item.weight}
+                            </span>
+                          )}
                         </p>
                       </div>
                       <p className="text-sm font-bold text-brown">

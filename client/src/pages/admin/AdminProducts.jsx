@@ -109,6 +109,7 @@ const AdminProducts = () => {
     price: "",
     category: "grains",
     stock: "",
+    totalStock: "",
     weight: "",
     weightOptions: [],
     image: "",
@@ -165,6 +166,17 @@ const AdminProducts = () => {
     return matchesSearch && matchesCat;
   });
 
+  // Stock summary
+  const totalStockSum = products.reduce(
+    (sum, p) => sum + (p.totalStock || p.stock || 0),
+    0,
+  );
+  const availableStockSum = products.reduce(
+    (sum, p) => sum + (p.stock || 0),
+    0,
+  );
+  const soldStockSum = totalStockSum - availableStockSum;
+
   const resetForm = () => {
     setFormData({
       name: "",
@@ -172,6 +184,7 @@ const AdminProducts = () => {
       price: "",
       category: "grains",
       stock: "",
+      totalStock: "",
       weight: "",
       weightOptions: [],
       image: "",
@@ -208,6 +221,7 @@ const AdminProducts = () => {
       price: product.price.toString(),
       category: product.category,
       stock: product.stock.toString(),
+      totalStock: (product.totalStock || product.stock).toString(),
       weight: product.weight,
       weightOptions: product.weightOptions || [],
       image: product.image,
@@ -241,6 +255,7 @@ const AdminProducts = () => {
       ...formData,
       price: Number(formData.price),
       stock: Number(formData.stock) || 0,
+      totalStock: Number(formData.totalStock) || Number(formData.stock) || 0,
     };
 
     try {
@@ -412,7 +427,33 @@ const AdminProducts = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-brown mb-1">
-                    Stock
+                    Total Stock
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.totalStock}
+                    onChange={(e) => {
+                      const total = e.target.value;
+                      setFormData({
+                        ...formData,
+                        totalStock: total,
+                        // Auto-set available stock to total if empty or greater
+                        stock:
+                          !formData.stock ||
+                          Number(formData.stock) > Number(total)
+                            ? total
+                            : formData.stock,
+                      });
+                    }}
+                    className="input-field"
+                    placeholder="100"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-brown mb-1">
+                    Available Stock
                   </label>
                   <input
                     type="number"
@@ -420,12 +461,21 @@ const AdminProducts = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, stock: e.target.value })
                     }
+                    max={formData.totalStock || undefined}
                     className="input-field"
                     placeholder="50"
                   />
+                  {formData.totalStock && formData.stock && (
+                    <p className="text-xs text-brown/60 mt-1">
+                      Sold:{" "}
+                      {Math.max(
+                        0,
+                        Number(formData.totalStock) - Number(formData.stock),
+                      )}{" "}
+                      units
+                    </p>
+                  )}
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-brown mb-1">
                     Category
@@ -638,6 +688,22 @@ const AdminProducts = () => {
         </div>
       )}
 
+      {/* Stock Summary */}
+      <div className="flex flex-wrap gap-4 mb-4">
+        <div className="bg-white rounded-xl shadow-sm px-6 py-4 text-center">
+          <p className="text-lg font-bold text-brown">{totalStockSum}</p>
+          <p className="text-xs text-brown/60">Total Stock</p>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm px-6 py-4 text-center">
+          <p className="text-lg font-bold text-olive">{availableStockSum}</p>
+          <p className="text-xs text-brown/60">Available</p>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm px-6 py-4 text-center">
+          <p className="text-lg font-bold text-gold">{soldStockSum}</p>
+          <p className="text-xs text-brown/60">Sold</p>
+        </div>
+      </div>
+
       {/* Products Table */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         {loading ? (
@@ -665,6 +731,9 @@ const AdminProducts = () => {
                   </th>
                   <th className="text-left py-3 text-xs font-medium text-brown/50 uppercase">
                     Stock
+                    <span className="block text-[10px] font-normal text-brown/40 normal-case">
+                      (Available / Total)
+                    </span>
                   </th>
                   <th className="text-left py-3 text-xs font-medium text-brown/50 uppercase">
                     Status
@@ -709,11 +778,22 @@ const AdminProducts = () => {
                       ₹{product.price}
                     </td>
                     <td className="py-3">
-                      <span
-                        className={`text-sm font-medium ${product.stock < 20 ? "text-red-500" : "text-brown"}`}
-                      >
-                        {product.stock}
-                      </span>
+                      <div className="flex flex-col">
+                        <span
+                          className={`text-sm font-medium ${product.stock < 20 ? "text-red-500" : "text-brown"}`}
+                          title={`Available: ${product.stock} | Total: ${product.totalStock || product.stock}`}
+                        >
+                          {product.stock} /{" "}
+                          {product.totalStock || product.stock}
+                        </span>
+                        {(product.totalStock || 0) > product.stock && (
+                          <span className="text-xs text-gold">
+                            Sold:{" "}
+                            {(product.totalStock || product.stock) -
+                              product.stock}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3">
                       <button

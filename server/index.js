@@ -14,13 +14,13 @@ const newsletterRoutes = require("./routes/newsletterRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const settingsRoutes = require("./routes/settingsRoutes");
 const teamRoutes = require("./routes/teamRoutes");
+const testimonialRoutes = require("./routes/testimonialRoutes");
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-
 
 // Serve uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -36,11 +36,12 @@ app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/team", teamRoutes);
+app.use("/api/testimonials", testimonialRoutes);
 
 // Serve static files from client build in production
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../client/dist")));
-  
+
   // Handle React routing - return index.html for all non-API routes
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "../client/dist", "index.html"));

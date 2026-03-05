@@ -36,7 +36,9 @@ import AdminNewsletter from "./pages/admin/AdminNewsletter";
 import AdminFeedback from "./pages/admin/AdminFeedback";
 import AdminVotes from "./pages/admin/AdminVotes";
 import AdminTeam from "./pages/admin/AdminTeam";
+import AdminSiteImages from "./pages/admin/AdminSiteImages";
 import AdminShipping from "./pages/admin/AdminShipping";
+import AdminTestimonials from "./pages/admin/AdminTestimonials";
 import AdminPaymentMethods from "./pages/admin/AdminPaymentMethods";
 import UserDashboard from "./pages/user/UserDashboard";
 import UserOrders from "./pages/user/UserOrders";
@@ -74,20 +76,24 @@ function App() {
 
   // Slow network detection
   useEffect(() => {
-    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    
+    const connection =
+      navigator.connection ||
+      navigator.mozConnection ||
+      navigator.webkitConnection;
+
     const checkConnection = () => {
       if (connection) {
         // Detect slow network (2g, slow-2g, or effectiveType slow)
         const slowTypes = ["slow-2g", "2g"];
-        const isSlow = slowTypes.includes(connection.effectiveType) || 
-                       (connection.downlink && connection.downlink < 0.5);
+        const isSlow =
+          slowTypes.includes(connection.effectiveType) ||
+          (connection.downlink && connection.downlink < 0.5);
         setIsSlowNetwork(isSlow);
       }
     };
 
     checkConnection();
-    
+
     if (connection) {
       connection.addEventListener("change", checkConnection);
       return () => connection.removeEventListener("change", checkConnection);
@@ -146,7 +152,8 @@ function App() {
                 {/* Slow Network Banner */}
                 {isSlowNetwork && !initialLoading && (
                   <div className="fixed top-0 left-0 right-0 z-[100] bg-orange-500 text-white text-center py-2 text-sm font-medium">
-                    ⚠️ Slow network detected. Some features may take longer to load.
+                    ⚠️ Slow network detected. Some features may take longer to
+                    load.
                   </div>
                 )}
                 <Routes>
@@ -174,6 +181,11 @@ function App() {
                     <Route path="feedback" element={<AdminFeedback />} />
                     <Route path="votes" element={<AdminVotes />} />
                     <Route path="team" element={<AdminTeam />} />
+                    <Route path="site-images" element={<AdminSiteImages />} />
+                    <Route
+                      path="testimonials"
+                      element={<AdminTestimonials />}
+                    />
                     <Route path="settings" element={<UserSettings />} />
                   </Route>
 
