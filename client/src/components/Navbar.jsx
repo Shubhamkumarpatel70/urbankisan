@@ -154,6 +154,7 @@ const Navbar = () => {
   const navLinks = [
     { to: "/", label: "Home" },
     { to: "/about", label: "About" },
+    { to: "/track-order", label: "Track Order" },
     { to: "/contact", label: "Contact" },
   ];
 

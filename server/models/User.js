@@ -16,8 +16,15 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
       minlength: 6,
+    },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    avatar: {
+      type: String,
     },
     isAdmin: {
       type: Boolean,
@@ -30,6 +37,8 @@ const userSchema = new mongoose.Schema(
       pincode: String,
       phone: String,
     },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
   },
   {
     timestamps: true,
@@ -38,7 +47,7 @@ const userSchema = new mongoose.Schema(
 
 // Hash password before saving
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+  if (!this.isModified("password") || !this.password) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });

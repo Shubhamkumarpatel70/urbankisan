@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
+import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
 import SplashScreen from "../components/SplashScreen";
 
@@ -8,7 +9,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/";
-  const { login, loading } = useAuth();
+  const { login, googleLogin, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showSplash, setShowSplash] = useState(false);
   const [formData, setFormData] = useState({
@@ -20,6 +21,19 @@ const Login = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError("");
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    const result = await googleLogin(credentialResponse.credential);
+    if (result.success) {
+      setShowSplash(true);
+    } else {
+      setError(result.message);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError("Google sign-in failed. Please try again.");
   };
 
   const handleSubmit = async (e) => {
@@ -124,9 +138,12 @@ const Login = () => {
                 />
                 <span className="text-sm text-brown/70">Remember me</span>
               </label>
-              <a href="#" className="text-sm text-olive hover:underline">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-olive hover:underline"
+              >
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             <button
@@ -136,6 +153,32 @@ const Login = () => {
             >
               {loading ? "Signing in..." : "Sign In"}
             </button>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-wheat"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white text-brown/50">
+                  or continue with
+                </span>
+              </div>
+            </div>
+
+            {/* Google Login */}
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                useOneTap
+                theme="outline"
+                size="large"
+                text="signin_with"
+                shape="rectangular"
+                width="100%"
+              />
+            </div>
           </form>
 
           {/* Footer */}

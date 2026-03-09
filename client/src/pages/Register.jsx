@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
+import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
 import SplashScreen from "../components/SplashScreen";
 
 const Register = () => {
   const navigate = useNavigate();
-  const { register, loading } = useAuth();
+  const { register, googleLogin, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showSplash, setShowSplash] = useState(false);
   const [formData, setFormData] = useState({
@@ -20,6 +21,19 @@ const Register = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError("");
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    const result = await googleLogin(credentialResponse.credential);
+    if (result.success) {
+      setShowSplash(true);
+    } else {
+      setError(result.message);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError("Google sign-up failed. Please try again.");
   };
 
   const handleSubmit = async (e) => {
@@ -189,6 +203,31 @@ const Register = () => {
             >
               {loading ? "Creating Account..." : "Create Account"}
             </button>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-wheat"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white text-brown/50">
+                  or sign up with
+                </span>
+              </div>
+            </div>
+
+            {/* Google Sign Up */}
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="outline"
+                size="large"
+                text="signup_with"
+                shape="rectangular"
+                width="100%"
+              />
+            </div>
           </form>
 
           {/* Footer */}

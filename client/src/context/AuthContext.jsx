@@ -11,7 +11,8 @@ export const AuthProvider = ({ children }) => {
     if (savedUser) {
       const parsedUser = JSON.parse(savedUser);
       // Set axios header synchronously on initial load
-      axios.defaults.headers.common["Authorization"] = `Bearer ${parsedUser.token}`;
+      axios.defaults.headers.common["Authorization"] =
+        `Bearer ${parsedUser.token}`;
       return parsedUser;
     }
     return null;
@@ -71,6 +72,22 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const googleLogin = async (credential) => {
+    setLoading(true);
+    try {
+      const { data } = await axios.post("/api/users/google", { credential });
+      setUser(data);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || "Google login failed",
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -79,6 +96,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        googleLogin,
         isAuthenticated: !!user,
       }}
     >

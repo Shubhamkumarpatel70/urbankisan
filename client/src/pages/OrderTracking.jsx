@@ -301,7 +301,7 @@ const OrderTracking = () => {
 
                 {/* View All Link */}
                 <Link
-                  to="/user/orders"
+                  to="/dashboard/orders"
                   className="block text-center text-sm text-olive hover:underline pt-2"
                 >
                   View All Orders →
@@ -674,8 +674,14 @@ const OrderTracking = () => {
                   </Link>
                 ) : (
                   <p className="text-xs text-brown/50">
-                    If this is your order, please login with the account used to
-                    place it.
+                    If this is your order, please{" "}
+                    <Link
+                      to="/login"
+                      className="text-olive hover:underline font-medium"
+                    >
+                      login
+                    </Link>{" "}
+                    with the account used to place it.
                   </p>
                 )}
               </div>

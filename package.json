@@ -16,5 +16,8 @@
     "url": "https://github.com/Shubhamkumarpatel70/urbankisan.git"
   },
   "author": "Shubham Kumar Patel",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@react-oauth/google": "^0.13.4"
+  }
 }

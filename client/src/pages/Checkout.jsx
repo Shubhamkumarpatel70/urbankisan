@@ -202,14 +202,13 @@ const Checkout = () => {
 
       clearCart();
       removeCoupon();
-      addToast("Order placed successfully! 🎉", "success");
+      // Navigate to order confirmation
       navigate(`/order-confirmation/${order._id}`);
     } catch (error) {
       addToast(
         error.response?.data?.message || "Failed to place order",
         "error",
       );
-    } finally {
       setPlacing(false);
     }
   };
