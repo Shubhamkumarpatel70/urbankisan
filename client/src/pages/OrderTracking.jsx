@@ -28,7 +28,7 @@ const getStepIndex = (status) => {
 
 const OrderTracking = () => {
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [orderId, setOrderId] = useState(searchParams.get("id") || "");
   const [order, setOrder] = useState(null);
   const [isOwner, setIsOwner] = useState(false);
@@ -36,12 +36,37 @@ const OrderTracking = () => {
   const [error, setError] = useState("");
   const [animatedStep, setAnimatedStep] = useState(-1);
   const animationRef = useRef(null);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [recentOrdersLoading, setRecentOrdersLoading] = useState(false);
 
   useEffect(() => {
     if (searchParams.get("id")) {
       handleSearch(searchParams.get("id"));
     }
   }, []);
+
+  // Fetch recent orders for logged-in user
+  useEffect(() => {
+    const fetchRecentOrders = async () => {
+      if (!isAuthenticated || !user?.token) {
+        setRecentOrders([]);
+        return;
+      }
+      setRecentOrdersLoading(true);
+      try {
+        const { data } = await axios.get("/api/orders/myorders", {
+          headers: { Authorization: `Bearer ${user.token}` },
+        });
+        // Get only the 5 most recent orders
+        setRecentOrders(data.slice(0, 5));
+      } catch (err) {
+        console.error("Failed to fetch recent orders:", err);
+      } finally {
+        setRecentOrdersLoading(false);
+      }
+    };
+    fetchRecentOrders();
+  }, [isAuthenticated, user]);
 
   // Sequentially animate steps when order loads
   useEffect(() => {
@@ -131,6 +156,191 @@ const OrderTracking = () => {
         </div>
         {error && <p className="text-red-500 text-sm mt-3">{error}</p>}
       </div>
+
+      {/* Recent Orders Section - Only visible before searching */}
+      {!order && !loading && (
+        <div className="bg-white rounded-2xl p-5 shadow-sm mb-8">
+          <h2 className="font-display font-semibold text-brown mb-4 flex items-center gap-2">
+            <FiPackage className="text-olive" size={18} />
+            Your Recent Orders
+          </h2>
+
+          {isAuthenticated ? (
+            recentOrdersLoading ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-20 bg-wheat/50 rounded-xl animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : recentOrders.length > 0 ? (
+              <div className="space-y-3">
+                {recentOrders.map((recentOrder) => {
+                  const statusEmoji =
+                    recentOrder.orderStatus === "delivered"
+                      ? "✅"
+                      : recentOrder.orderStatus === "cancelled"
+                        ? "❌"
+                        : recentOrder.orderStatus === "shipped"
+                          ? "📦"
+                          : recentOrder.orderStatus === "outForDelivery"
+                            ? "🚚"
+                            : recentOrder.orderStatus === "processing"
+                              ? "⚙️"
+                              : "✓";
+
+                  return (
+                    <button
+                      key={recentOrder._id}
+                      onClick={() => {
+                        const id = recentOrder.orderId || recentOrder._id;
+                        setOrderId(id);
+                        handleSearch(id);
+                      }}
+                      className="w-full flex items-center gap-3 p-3 bg-ivory hover:bg-wheat/50 rounded-xl transition-all text-left group border border-transparent hover:border-olive/20"
+                    >
+                      {/* Order Image Stack */}
+                      <div className="relative w-14 h-14 flex-shrink-0">
+                        {recentOrder.items?.slice(0, 2).map((item, idx) => (
+                          <div
+                            key={idx}
+                            className={`absolute w-11 h-11 bg-wheat rounded-lg overflow-hidden border-2 border-white shadow-sm ${
+                              idx === 0
+                                ? "z-10 top-0 left-0"
+                                : "z-0 bottom-0 right-0"
+                            }`}
+                          >
+                            {item?.image ? (
+                              <img
+                                src={item.image}
+                                alt={item.name || "Product"}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <FiPackage
+                                  className="text-brown/30"
+                                  size={16}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                        {recentOrder.items?.length > 2 && (
+                          <div className="absolute bottom-0 right-0 w-5 h-5 bg-olive text-ivory text-[10px] font-bold rounded-full flex items-center justify-center z-20">
+                            +{recentOrder.items.length - 2}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Order Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <p className="font-mono text-sm font-semibold text-olive">
+                            {recentOrder.orderId || recentOrder._id?.slice(-8)}
+                          </p>
+                          <span className="text-sm">{statusEmoji}</span>
+                        </div>
+                        <p className="text-sm text-brown font-medium truncate">
+                          {recentOrder.items?.length === 1
+                            ? recentOrder.items[0]?.name || "Product"
+                            : recentOrder.items?.length > 1
+                              ? `${recentOrder.items[0]?.name || "Product"} +${recentOrder.items.length - 1} more`
+                              : "Order"}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-brown/60 mt-0.5">
+                          <span>
+                            {new Date(recentOrder.createdAt).toLocaleDateString(
+                              "en-IN",
+                              {
+                                day: "numeric",
+                                month: "short",
+                              },
+                            )}
+                          </span>
+                          <span>•</span>
+                          <span className="font-medium text-brown">
+                            ₹{recentOrder.totalPrice}
+                          </span>
+                          <span>•</span>
+                          <span>
+                            {recentOrder.items?.length || 0} item
+                            {recentOrder.items?.length !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Status Badge */}
+                      <div className="flex-shrink-0 text-right">
+                        <span
+                          className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${
+                            recentOrder.orderStatus === "delivered"
+                              ? "bg-green-100 text-green-700"
+                              : recentOrder.orderStatus === "cancelled"
+                                ? "bg-red-100 text-red-600"
+                                : recentOrder.orderStatus === "shipped" ||
+                                    recentOrder.orderStatus === "outForDelivery"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : "bg-olive/10 text-olive"
+                          }`}
+                        >
+                          {recentOrder.orderStatus === "outForDelivery"
+                            ? "On the way"
+                            : recentOrder.orderStatus.charAt(0).toUpperCase() +
+                              recentOrder.orderStatus.slice(1)}
+                        </span>
+                        <p className="text-[10px] text-brown/40 mt-1 group-hover:text-olive transition-colors">
+                          Tap to track →
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+
+                {/* View All Link */}
+                <Link
+                  to="/user/orders"
+                  className="block text-center text-sm text-olive hover:underline pt-2"
+                >
+                  View All Orders →
+                </Link>
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <FiPackage className="mx-auto text-brown/20 mb-3" size={32} />
+                <p className="text-brown/50 text-sm">No orders yet</p>
+                <Link
+                  to="/products"
+                  className="inline-block mt-3 text-sm text-olive hover:underline"
+                >
+                  Start Shopping →
+                </Link>
+              </div>
+            )
+          ) : (
+            /* Not logged in */
+            <div className="text-center py-6">
+              <div className="w-14 h-14 bg-wheat rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiLock className="text-brown/40" size={24} />
+              </div>
+              <p className="text-brown/70 font-medium mb-2">
+                Login to view your orders
+              </p>
+              <p className="text-brown/50 text-sm mb-4">
+                Access your order history and track all orders easily
+              </p>
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-olive text-ivory rounded-xl font-medium text-sm hover:bg-olive/90 transition-colors"
+              >
+                <FiLogIn size={16} /> Login
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Order Details */}
       {order && (
@@ -471,16 +681,6 @@ const OrderTracking = () => {
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {/* No order searched yet */}
-      {!order && !loading && !error && (
-        <div className="text-center py-8">
-          <FiPackage className="mx-auto text-brown/20 mb-4" size={48} />
-          <p className="text-brown/50">
-            Enter your Order ID above to track your order
-          </p>
         </div>
       )}
     </div>

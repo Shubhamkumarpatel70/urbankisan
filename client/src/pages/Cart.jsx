@@ -47,14 +47,16 @@ const Cart = () => {
           const { data: coupons } = await axios.get("/api/coupons/active");
           setAvailableCoupons(coupons);
         }
-      } catch (err) { /* ignore */ }
+      } catch (err) {
+        /* ignore */
+      }
     };
     fetchData();
   }, [isAuthenticated]);
 
   const subtotal = getCartTotal();
   const couponDiscount = getDiscount(subtotal);
-  
+
   // Calculate tier discount based on subtotal
   const applicableTier = shippingSettings.discountTiers
     .filter((tier) => subtotal >= tier.minAmount)
@@ -62,12 +64,15 @@ const Cart = () => {
   const tierDiscount = applicableTier
     ? Math.round((subtotal * applicableTier.discountPercent) / 100)
     : 0;
-  
+
   // Total discount (coupon or tier, whichever is higher)
   const totalDiscount = Math.max(couponDiscount, tierDiscount);
   const appliedTierDiscount = tierDiscount > couponDiscount && !appliedCoupon;
-  
-  const shippingCost = subtotal >= shippingSettings.freeShippingThreshold ? 0 : shippingSettings.shippingCharge;
+
+  const shippingCost =
+    subtotal >= shippingSettings.freeShippingThreshold
+      ? 0
+      : shippingSettings.shippingCharge;
   const total = subtotal - totalDiscount + shippingCost;
 
   const handleApplyCoupon = async () => {
@@ -125,10 +130,11 @@ const Cart = () => {
               {cartItems.map((item, index) => (
                 <div
                   key={item._id}
-                  className={`flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4 sm:p-6 ${index !== cartItems.length - 1
-                    ? "border-b border-wheat"
-                    : ""
-                    }`}
+                  className={`flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-4 sm:p-6 ${
+                    index !== cartItems.length - 1
+                      ? "border-b border-wheat"
+                      : ""
+                  }`}
                 >
                   {/* Product Image + Info Row */}
                   <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto sm:flex-1 min-w-0">
@@ -167,7 +173,9 @@ const Cart = () => {
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                        onClick={() =>
+                          updateQuantity(item._id, item.quantity - 1)
+                        }
                         className="w-8 h-8 rounded-lg border border-wheat flex items-center justify-center text-brown hover:bg-wheat transition-colors active:scale-95"
                       >
                         <FiMinus size={14} />
@@ -176,7 +184,9 @@ const Cart = () => {
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                        onClick={() =>
+                          updateQuantity(item._id, item.quantity + 1)
+                        }
                         className="w-8 h-8 rounded-lg border border-wheat flex items-center justify-center text-brown hover:bg-wheat transition-colors active:scale-95"
                       >
                         <FiPlus size={14} />
@@ -231,7 +241,9 @@ const Cart = () => {
               <div className="mb-5 sm:mb-6">
                 <div className="flex items-center gap-2 mb-2.5">
                   <FiTag className="text-olive" size={15} />
-                  <span className="text-sm font-medium text-brown">Coupon Code</span>
+                  <span className="text-sm font-medium text-brown">
+                    Coupon Code
+                  </span>
                   <button
                     onClick={() => setShowCoupons(!showCoupons)}
                     className="ml-auto text-xs text-olive hover:underline"
@@ -245,11 +257,20 @@ const Cart = () => {
                     {availableCoupons.map((c) => (
                       <button
                         key={c.code}
-                        onClick={() => { setCouponCode(c.code); setShowCoupons(false); }}
+                        onClick={() => {
+                          setCouponCode(c.code);
+                          setShowCoupons(false);
+                        }}
                         className="w-full flex items-center justify-between p-2 bg-ivory rounded-lg hover:bg-wheat/50 transition-colors text-left"
                       >
-                        <span className="text-xs font-bold text-olive font-mono">{c.code}</span>
-                        <span className="text-xs text-olive/80">{c.type === "percent" ? `${c.value}% off` : `₹${c.value} off`}</span>
+                        <span className="text-xs font-bold text-olive font-mono">
+                          {c.code}
+                        </span>
+                        <span className="text-xs text-olive/80">
+                          {c.type === "percent"
+                            ? `${c.value}% off`
+                            : `₹${c.value} off`}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -259,9 +280,17 @@ const Cart = () => {
                   <div className="flex items-center justify-between p-3 bg-olive/10 rounded-lg">
                     <div className="flex items-center gap-2">
                       <FiPercent className="text-olive" size={14} />
-                      <span className="text-sm font-bold text-olive font-mono">{appliedCoupon.code}</span>
+                      <span className="text-sm font-bold text-olive font-mono">
+                        {appliedCoupon.code}
+                      </span>
                     </div>
-                    <button onClick={() => { removeCoupon(); addToast("Coupon removed", "info"); }} className="text-olive hover:text-red-500">
+                    <button
+                      onClick={() => {
+                        removeCoupon();
+                        addToast("Coupon removed", "info");
+                      }}
+                      className="text-olive hover:text-red-500"
+                    >
                       <FiX size={16} />
                     </button>
                   </div>
@@ -270,7 +299,9 @@ const Cart = () => {
                     <input
                       type="text"
                       value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      onChange={(e) =>
+                        setCouponCode(e.target.value.toUpperCase())
+                      }
                       placeholder="Enter code"
                       className="flex-1 px-3 py-2 text-sm rounded-lg border border-wheat bg-ivory text-brown placeholder-brown/40 focus:outline-none focus:border-olive uppercase font-mono"
                     />
@@ -302,20 +333,28 @@ const Cart = () => {
                 )}
                 <div className="flex justify-between text-sm text-brown/70">
                   <span>Shipping</span>
-                  <span className={shippingCost === 0 ? "text-olive font-medium" : ""}>
+                  <span
+                    className={
+                      shippingCost === 0 ? "text-olive font-medium" : ""
+                    }
+                  >
                     {shippingCost === 0 ? "FREE" : `₹${shippingCost}`}
                   </span>
                 </div>
-                {shippingCost > 0 && subtotal < shippingSettings.freeShippingThreshold && (
-                  <p className="text-xs text-olive">
-                    Add ₹{shippingSettings.freeShippingThreshold - subtotal} more for free shipping!
-                  </p>
-                )}
-                
+                {shippingCost > 0 &&
+                  subtotal < shippingSettings.freeShippingThreshold && (
+                    <p className="text-xs text-olive">
+                      Add ₹{shippingSettings.freeShippingThreshold - subtotal}{" "}
+                      more for free shipping!
+                    </p>
+                  )}
+
                 {/* Show available tier discounts */}
                 {shippingSettings.discountTiers.length > 0 && (
                   <div className="pt-2 border-t border-wheat/50">
-                    <p className="text-xs text-brown/50 mb-1.5">Available Offers:</p>
+                    <p className="text-xs text-brown/50 mb-1.5">
+                      Available Offers:
+                    </p>
                     {shippingSettings.discountTiers.map((tier, i) => (
                       <p
                         key={i}
@@ -326,7 +365,8 @@ const Cart = () => {
                         }`}
                       >
                         {subtotal >= tier.minAmount ? "✓ " : "• "}
-                        {tier.label || `${tier.discountPercent}% off on orders above ₹${tier.minAmount}`}
+                        {tier.label ||
+                          `${tier.discountPercent}% off on orders above ₹${tier.minAmount}`}
                         {subtotal < tier.minAmount && (
                           <span className="text-brown/40 ml-1">
                             (Add ₹{tier.minAmount - subtotal} more)
@@ -344,13 +384,27 @@ const Cart = () => {
                   <span className="text-olive">₹{total}</span>
                 </div>
                 {totalDiscount > 0 && (
-                  <p className="text-xs text-olive mt-1">You save ₹{totalDiscount}!</p>
+                  <p className="text-xs text-olive mt-1">
+                    You save ₹{totalDiscount}!
+                  </p>
                 )}
               </div>
 
-              <Link to="/checkout" className="block w-full btn-primary text-center">
-                Proceed to Checkout
-              </Link>
+              {isAuthenticated ? (
+                <Link
+                  to="/checkout"
+                  className="block w-full btn-primary text-center"
+                >
+                  Proceed to Checkout
+                </Link>
+              ) : (
+                <Link
+                  to="/login?redirect=/checkout"
+                  className="block w-full btn-primary text-center"
+                >
+                  Login to Order
+                </Link>
+              )}
 
               <p className="text-xs text-brown/50 text-center mt-3 sm:mt-4">
                 🔒 Secure checkout powered by industry-standard encryption

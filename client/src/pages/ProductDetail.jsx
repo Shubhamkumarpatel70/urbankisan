@@ -887,7 +887,11 @@ const ProductDetail = () => {
 
       {/* Share Modal */}
       {showShare && (
-        <ShareModal product={product} onClose={() => setShowShare(false)} />
+        <ShareModal
+          isOpen={showShare}
+          product={product}
+          onClose={() => setShowShare(false)}
+        />
       )}
     </div>
   );
